@@ -1,0 +1,39 @@
+name: bgp-full-redundancy
+topology:
+  nodes:
+    RT1:
+      kind: srl
+      image: ghcr.io/nokia/srlinux:25.3.1
+    RT2:
+      kind: srl
+      image: ghcr.io/nokia/srlinux:25.3.1
+    Carrier1:
+      kind: srl
+      image: ghcr.io/nokia/srlinux:25.3.1
+    Carrier2:
+      kind: srl
+      image: ghcr.io/nokia/srlinux:25.3.1
+    Cliente:
+      kind: linux
+      image: ghcr.io/hellt/network-multitool
+    Servidor:
+      kind: linux
+      image: ghcr.io/hellt/network-multitool
+
+  links:
+    # eBGP enlaces
+    - endpoints: ["RT1:eth1", "Carrier1:eth1"]   # 10.0.0.1 ↔ 10.0.0.2
+    - endpoints: ["RT1:eth2", "Carrier2:eth1"]   # 10.0.1.1 ↔ 10.0.1.2
+    - endpoints: ["RT2:eth1", "Carrier1:eth2"]   # 10.0.2.2 ↔ 10.0.2.1
+    - endpoints: ["RT2:eth2", "Carrier2:eth2"]   # 10.0.3.2 ↔ 10.0.3.1
+
+    # iBGP entre routers
+    - endpoints: ["RT1:eth3", "RT2:eth3"]        # 10.0.4.1 ↔ 10.0.4.2
+
+    # Cliente dual-homed
+    - endpoints: ["RT1:eth4", "Cliente:eth1"]    # 192.168.10.1 ↔ 192.168.10.10
+    - endpoints: ["RT2:eth4", "Cliente:eth2"]    # 192.168.20.1 ↔ 192.168.20.10
+
+    # Servidor dual-homed
+    - endpoints: ["Carrier1:eth3", "Servidor:eth1"]  # 100.64.1.254 ↔ 100.64.1.100
+    - endpoints: ["Carrier2:eth3", "Servidor:eth2"]  # 100.64.1.253 ↔ 100.64.1.101
